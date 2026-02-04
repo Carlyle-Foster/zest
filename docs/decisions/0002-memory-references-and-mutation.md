@@ -12,7 +12,7 @@ We have some goals that are in tension:
 
 'Mutable value semantics' means that we allow mutation, but we don't allow observable aliasing between values ie the following program always prints two identical values:
 
-``` zest
+```zest
 y = x
 print(y)
 f(x@) // this can only change x, not y
@@ -21,7 +21,7 @@ print(y)
 
 'Equality is egal' requires that values are equal if and only if they cannot be distinguished by a program ie:
 
-``` zest
+```zest
 if a == b {
   assert(f(a) == f(b))
 }
@@ -29,7 +29,7 @@ if a == b {
 
 'Values are data' means that any value can be serialized and deserialized to an equal value:
 
-``` zest
+```zest
 assert(x == deserialize(serialize(x)))
 ```
 
@@ -49,7 +49,7 @@ The [original paper](https://research.google/pubs/mutable-value-semantics/) on m
 
 This allows for very simple semantics, but violates reasonable performance. Does the following program copy `x`?
 
-``` zest
+```zest
 x[i]@ == 1
 ```
 
@@ -72,7 +72,7 @@ Zest is not the only language struggling with this though. We can take some insp
 
 ## weaving between the constraints
 
-If a borrowed value is serialized and deserialized, we must get an owned value, otherwise who is responsible for dropping the new value? This implies that borrowed and owned values must have the same type and representation. 
+If a borrowed value is serialized and deserialized, we must get an owned value, otherwise who is responsible for dropping the new value? This implies that borrowed and owned values must have the same type and representation.
 
 Borrowing a large value must produce a pointer to the original value (no implicit copies of large values). So all large owned values must also be represented as pointers. To simplify, let's define 'large' as 'larger than a pointer'. So bools/integers/floats are passed by value even when borrowed, but most values are passed by reference.
 
@@ -86,8 +86,124 @@ Partial moves seem tricky. In `x[i]/move`, maybe `x` is a struct and we can use 
 
 This design doesn't currently allow for returning borrows from functions, but we could extend the annotations to allow C# -style ref returns. The returned value would have to be assumed to borrow from all the arguments, because when we're borrow-checking we don't yet know which function we're calling. For now though let's see how far we can get without returning borrows.
 
-So far we have universal layout and no interior pointers. We can fix that by adding a type annotation. `*T` behaves exactly like `T` except that it is stored inline in it's container / on the stack. When we try to immutably borrow an `*T` we get a `T` - a pointer to the inline value. If we want to return a `*T` or assign to a mutable `*T` then we have to explicitly dereference-and-copy the value - `return x*`. This prevents accidental copies of large inline values, as is common in go, and discourages accidentally returning large inline values through many layers of generic function calls, as is common in go and rust.
+So far we have universal layout and no interior pointers. We can fix that by adding a type annotation. `embedded(T)` behaves exactly like `T` except that it is stored inline in it's container / on the stack. When we try to immutably borrow a `embedded(T)` we get a `T` - a pointer to the inline value. If we want to return a `embedded(T)` or assign to a mutable `embedded(T)` then we have to explicitly dereference-and-copy the value - `return x/embed`. This prevents accidental copies of large inline values, as is common in go, and discourages accidentally returning large inline values through many layers of generic function calls, as is common in go and rust.
 
 ## examples
 
-TODO
+In these examples, `borrow error` is detected at compile-time in all code, whereas `type error` is detected at runtime in the dynamic dialect and at compile-time in the static dialect.
+
+Compared to rust, we have equivalents of `&T` and `&mut T` but we never allow them to appear inside another type. This allows borrow-checking to be separated from type-checking, but makes borrows effectively second-class.
+
+```zest
+// a has type i64 and is owned
+a = 1 
+
+// b has type i64 and is borrowed from a
+b = a 
+
+// borrow error: b is borrowed from a and must not outlive a
+return b
+
+// c has type i64 and is owned
+// addition takes borrowed arguments and returns an owned value
+c = b + 1
+
+// d has type i64 and is borrowed from a and c
+d = if cond() a else c
+
+// borrow error: can't use borrowed values inside an owned struct
+// this prevents us from having to keep track of which parts of a value are borrowed vs owned
+// either a value is wholly owned (and must be freed at the end of the scope), or wholly borrowed
+e = [a, c]
+
+// this is fine
+e = [a/copy, c/copy]
+
+// borrow error: can't mutably borrow b because b already borrows from a
+// (we could relax this somewhat - allow assignment but not interior mutation or creating mutable reference)
+b/mut += 1
+
+// this is fine
+f = b/copy
+f/mut += 1
+
+// g borrows mutably from f
+{
+  g = f/mut
+}
+
+// borrow error: can't mutably borrow f while it is borrowed by g
+{
+  g = f/mut
+  g2 = f/mut
+}
+
+// borrow error: can't mutably borrow f while it is borrowed by f/mut
+foo0(f/mut, f/mut)
+
+// borrow error: can't mutably borrow f while it is borrowed by f2
+{
+  f2 = f
+  foo0(f/mut)
+}
+
+// i has type i64 and is borrowed from h
+h = [0, 1]
+[i, _] = h
+
+// borrow error: can't move h while it is borrowed by i
+[j, _] = h/move
+
+// j has type i64 and is owned
+drop(i)
+[j, _] = h/move
+
+// borrow error: h was already moved into j
+[k, _] = h/move
+
+// borrow error: b is a borrowed value and cannot be moved
+[k, _] = b/move
+
+// borrow error: the argument to move must be a single variable
+// this avoids dealing with partial moves - we can have a single drop flag per owned variable
+[k, _] = h.0/move
+
+// l has type struct[i64, i64] and is heap-allocated
+l = [0, 1]
+
+// m has type embedded(struct[i64, i64]) and is stack-allocated
+m = l/embed
+
+// n has type struct[i64, i64] and is borrowed from m
+n = m
+
+// o has type struct[embedded(struct[i64, i64]), embedded(struct[i64, i64])]
+// and is a single 32-byte heap allocation
+o = [n/embed, n/embed]
+
+// type error: can't embed a borrowed struct which contains non-embedded values
+// this guarantees that /embed is only ever a shallow copy
+p = [[0, 1], [0, 1]]
+q = p/embed
+
+// we have to explicitly copy the nested structs
+q = p/copy/embed
+
+// by default, functions expect their arguments to be borrowed
+foo1 = (x) { ... }
+foo1(e)
+
+// it's fine to pass an owned value to a function that expects a borrowed value
+foo1([0, 1])
+
+// but not vice-versa
+// type error: expected x to be an owned value but received a borrowed value
+foo2 = (x/move) { ... }
+foo2(e)
+
+// we need to explicitly provide an owned value using move or copy
+foo2(e/copy)
+foo2(h/move)
+```
+
+We're going to find ourselves typing `/mut`, `/copy`, and `/move` a lot - maybe they deserve to be a single postfix character each?
