@@ -17,6 +17,10 @@ try {
         var enc = new TextEncoder();
         writeAllSync(Deno.stdout, enc.encode(i64.toString()));
       },
+      print_f64: function (f64) {
+        var enc = new TextEncoder();
+        writeAllSync(Deno.stdout, enc.encode(f64.toString()));
+      },
       print_string: function (ptr, len) {
         let str = new Uint8Array(memory.buffer, ptr, len);
         writeAllSync(Deno.stdout, str);

@@ -225,6 +225,9 @@ pub fn evalExpr(
         .repr_i64 => {
             c.value_stack.append(.{ .repr = .i64 }) catch oom();
         },
+        .repr_f64 => {
+            c.value_stack.append(.{ .repr = .f64 }) catch oom();
+        },
         .repr_string => {
             c.value_stack.append(.{ .repr = .string }) catch oom();
         },
@@ -670,6 +673,7 @@ pub fn evalExpr(
                     switch (value) {
                         .u32 => |u| c.printed.writer().print("{}", .{u}) catch oom(),
                         .i64 => |i| c.printed.writer().print("{}", .{i}) catch oom(),
+                        .f64 => |fl| c.printed.writer().print("{}", .{fl}) catch oom(),
                         .string => |string| c.printed.appendSlice(string) catch oom(),
                         else => return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{value}) } }),
                     }

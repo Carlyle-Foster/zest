@@ -53,7 +53,7 @@ All other types can be built via conversions from these basic types:
 ```zest-test
 42/f64
 
-Name not bound: f64
+Expected f64, found i64
 ```
 
 ```zest-test
@@ -114,7 +114,7 @@ Arbitrary precision decimals.
 
 3.14e0
 
-TODO infer: dir.ExprData{ .f64 = 3.14e0 }
+3.14
 ```
 
 TODO NaN? Inf?
@@ -304,16 +304,12 @@ i64[9223372036854775808]
 i64[3.00]
 
 Expected i64, found f64
-
-TODO infer: dir.ExprData{ .f64 = 3e0 }
 ```
 
 ```zest-test
 i64[3.14]
 
 Expected i64, found f64
-
-TODO infer: dir.ExprData{ .f64 = 3.14e0 }
 ```
 
 ### floats
@@ -321,7 +317,7 @@ TODO infer: dir.ExprData{ .f64 = 3.14e0 }
 ```zest-test
 f64[42]
 
-Name not bound: f64
+Expected f64, found i64
 ```
 
 TODO Represent literals as big-int/big-dec to avoid this problem.
@@ -340,13 +336,17 @@ TODO Don't allow imprecise float parse.
 ```zest-test
 f64[9223372036854775808.0]
 
-Name not bound: f64
+9.223372036854776e18
+
+9223372036854776000
 ```
 
 ```zest-test
 f64[3.14]
 
-Name not bound: f64
+3.14e0
+
+3.14
 ```
 
 ### strings
@@ -439,8 +439,6 @@ Expected union[strings: string, nums: i64], found struct[nums: string]
 [floats: 3.14]/union[strings: string, nums: i64]
 
 Expected union[strings: string, nums: i64], found struct[floats: f64]
-
-TODO infer: dir.ExprData{ .f64 = 3.14e0 }
 ```
 
 ```zest-test
@@ -457,9 +455,9 @@ x.nums
 Key 'nums' not found in [strings: 'hello']/union[strings: string, nums: i64]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/ce2c6792:1:188)
-    at <anonymous> (wasm://wasm/ce2c6792:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/4a030ffe:1:208)
+    at <anonymous> (wasm://wasm/4a030ffe:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -633,7 +631,7 @@ It's intended that `a ~= b` iff `a == b/convert(type-of(a))` ie convert should o
 
 0
 
-TODO infer: dir.ExprData{ .f64 = 4.2e1 }
+%only(0)
 ```
 
 ```zest-test

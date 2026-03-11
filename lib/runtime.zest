@@ -9,6 +9,8 @@ print = (x) {
         %print('/u32')
     } else if %only(%repr-of(x) == i64) {
         %print(x)
+    } else if %only(%repr-of(x) == f64) {
+        %print(x)
     } else if %only(%repr-of(x) == string) {
         %print('\'')
         // TODO escape

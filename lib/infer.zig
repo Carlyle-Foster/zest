@@ -143,6 +143,10 @@ fn inferExprInner(
             emit(c, f, .{ .i64 = i });
             return .i64;
         },
+        .f64 => |fl| {
+            emit(c, f, .{ .f64 = fl });
+            return .f64;
+        },
         .string => |string| {
             emit(c, f, .{ .string = string });
             return .string;
@@ -612,6 +616,7 @@ fn inferExprInner(
                     switch (repr) {
                         .u32 => emit(c, f, .{ .call_builtin = .print_u32 }),
                         .i64 => emit(c, f, .{ .call_builtin = .print_i64 }),
+                        .f64 => emit(c, f, .{ .call_builtin = .print_f64 }),
                         .string => emit(c, f, .{ .call_builtin = .print_string }),
                         else => return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Repr, &.{repr}) } }),
                     }

@@ -33,6 +33,11 @@ const imports = .{
         .return_types = &.{},
     },
     .{
+        .name = "print_f64",
+        .arg_types = &[_]wasm.Valtype{.f64},
+        .return_types = &.{},
+    },
+    .{
         .name = "print_string",
         .arg_types = &[_]wasm.Valtype{ .i32, .i32 },
         .return_types = &.{},
@@ -329,6 +334,9 @@ fn genExprInner(
         .i64 => |i| {
             return .{ .i64 = i };
         },
+        .f64 => |fl| {
+            return .{ .f64 = fl };
+        },
         .string => |string| {
             return .{ .string = string };
         },
@@ -525,7 +533,7 @@ fn genExprInner(
                     .equal_u32, .not_equal_u32, .less_than_u32, .less_than_or_equal_u32, .more_than_u32, .more_than_or_equal_u32, .equal_i64, .not_equal_i64, .less_than_i64, .less_than_or_equal_i64, .more_than_i64, .more_than_or_equal_i64, .negate_i64, .add_i64, .subtract_i64, .multiply_i64, .remainder_i64, .union_has_key => .{ .i64 = 0 },
                     .add_f64 => .{ .i64 = 0 }, // TODO(carlyle) i don't rly understand what we're doing here
                     .memory_size, .heap_start, .size_of, .bit_shift_left_u32 => .{ .u32 = 0 },
-                    .memory_grow, .memory_fill, .memory_copy, .load, .store, .print_u32, .print_i64, .print_string, .panic, .from_only => unreachable,
+                    .memory_grow, .memory_fill, .memory_copy, .load, .store, .print_u32, .print_i64, .print_f64, .print_string, .panic, .from_only => unreachable,
                 };
             }
             switch (builtin) {
@@ -745,6 +753,13 @@ fn genExprInner(
                     emitLebU32(f, import_ix);
                     return wir.Walue.emptyStruct();
                 },
+                .print_f64 => {
+                    emitEnum(f, wasm.Opcode.call);
+                    const import_ix: usize = 2;
+                    assert(std.mem.eql(u8, imports[import_ix].name, "print_f64"));
+                    emitLebU32(f, import_ix);
+                    return wir.Walue.emptyStruct();
+                },
                 .print_string => {
                     // TODO Codegen is poor because we don't have a Walue.string_innards or WasmRepr.primitives yet.
                     var ptr_ptr = spillStack(c, f, wir.Walue{ .stack = .u32 });
@@ -752,7 +767,7 @@ fn genExprInner(
                     load(c, f, .{ .value_at = .{ .ptr = &ptr_ptr, .repr = .u32 } });
                     load(c, f, .{ .value_at = .{ .ptr = &len_ptr, .repr = .u32 } });
                     emitEnum(f, wasm.Opcode.call);
-                    const import_ix: usize = 2;
+                    const import_ix: usize = 3;
                     assert(std.mem.eql(u8, imports[import_ix].name, "print_string"));
                     emitLebU32(f, import_ix);
                     return wir.Walue.emptyStruct();
@@ -1064,6 +1079,7 @@ fn storePrimitive(c: *Compiler, f: *wir.FunData, from_value: wir.Walue, to_ptr: 
     emitEnum(f, switch (valtype) {
         .i32 => wasm.Opcode.i32_store,
         .i64 => wasm.Opcode.i64_store,
+        .f64 => wasm.Opcode.f64_store,
         else => panic("Unimplemented", .{}),
     });
     emitLebU32(f, 0); // align
@@ -1095,6 +1111,7 @@ fn load(c: *Compiler, f: *wir.FunData, from_value: wir.Walue) void {
             emitEnum(f, switch (value_at.repr) {
                 .u32, .ref => wasm.Opcode.i32_load,
                 .i64 => wasm.Opcode.i64_load,
+                .f64 => wasm.Opcode.f64_load,
                 else => panic("Can't load repr {}", .{value_at.repr}),
             });
             emitLebU32(f, 0); // align

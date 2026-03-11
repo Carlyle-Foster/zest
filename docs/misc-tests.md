@@ -1349,9 +1349,9 @@ Tried to perform a side effect during pure evaluation: zest.Builtin.print
 panic
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/ddc9b21a:1:199)
-    at <anonymous> (wasm://wasm/ddc9b21a:1:179)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/ab13e882:1:219)
+    at <anonymous> (wasm://wasm/ab13e882:1:199)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1367,10 +1367,10 @@ panic
 
 Oh no
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/88f422fe:1:309)
-    at <anonymous> (wasm://wasm/88f422fe:1:224)
-    at <anonymous> (wasm://wasm/88f422fe:1:180)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/d7e17f5e:1:329)
+    at <anonymous> (wasm://wasm/d7e17f5e:1:244)
+    at <anonymous> (wasm://wasm/d7e17f5e:1:200)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1385,9 +1385,9 @@ RuntimeError: unreachable
 Division by zero
 
 RuntimeError: remainder by zero
-    at <anonymous> (wasm://wasm/94126c02:1:192)
-    at <anonymous> (wasm://wasm/94126c02:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/f2301e1e:1:212)
+    at <anonymous> (wasm://wasm/f2301e1e:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1519,9 +1519,9 @@ a.none
 Key 'none' not found in [some: 42]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/b5fd9dea:1:186)
-    at <anonymous> (wasm://wasm/b5fd9dea:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/7d16ac9a:1:206)
+    at <anonymous> (wasm://wasm/7d16ac9a:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1538,9 +1538,9 @@ a.none
 Key 'none' not found in [some: 42]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/5e55164e:1:223)
-    at <anonymous> (wasm://wasm/5e55164e:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/44e0a59e:1:243)
+    at <anonymous> (wasm://wasm/44e0a59e:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1550,9 +1550,9 @@ a.some
 Key 'some' not found in [none: []]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/ce2c6792:1:188)
-    at <anonymous> (wasm://wasm/ce2c6792:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/4a030ffe:1:208)
+    at <anonymous> (wasm://wasm/4a030ffe:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1569,9 +1569,9 @@ a.some
 Key 'some' not found in [none: []]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/2097f78e:1:218)
-    at <anonymous> (wasm://wasm/2097f78e:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/6fefb3ce:1:238)
+    at <anonymous> (wasm://wasm/6fefb3ce:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
@@ -1611,9 +1611,9 @@ a.none
 Key 'some' not found in [none: 101]/union[some: i64, none: i64]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/91994d06:1:240)
-    at <anonymous> (wasm://wasm/91994d06:1:177)
-    at file:///home/million/Programming/forks/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/ee4e998e:1:260)
+    at <anonymous> (wasm://wasm/ee4e998e:1:197)
+    at file:///home/million/Programming/forks/zest/test.js:37:24
 ```
 
 ```zest-test
