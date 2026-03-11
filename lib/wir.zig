@@ -25,6 +25,7 @@ pub const Walue = union(enum) {
     stack: Repr, // must be primitive
     u32: u32,
     i64: i64,
+    f64: f64,
     string: []const u8,
     @"struct": struct {
         repr: ReprStruct,

@@ -152,14 +152,14 @@ pub fn main() !void {
             const lax_or_err = evalLax(allocator, &compiler, source);
             const actual_lax =
                 std.fmt.allocPrint(allocator, "{s}{s}", .{
-                    compiler.printed.items,
-                    std.mem.trim(
-                        u8,
-                        lax_or_err catch
-                            zest.formatError(&compiler),
-                        "\n",
-                    ),
-                }) catch oom();
+                compiler.printed.items,
+                std.mem.trim(
+                    u8,
+                    lax_or_err catch
+                        zest.formatError(&compiler),
+                    "\n",
+                ),
+            }) catch oom();
             const should_run_strict = if (lax_or_err) |_| true else |err| switch (err) {
                 error.EvalError => true,
                 else => false,
@@ -229,9 +229,9 @@ pub fn main() !void {
     }
 
     if (failures == 0) {
-        std.debug.print("Ok!", .{});
+        std.debug.print("Ok!\n", .{});
     } else {
-        std.debug.print("Failures: {}!", .{failures});
+        std.debug.print("Failures: {}!\n", .{failures});
         std.process.exit(1);
     }
 }

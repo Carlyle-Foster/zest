@@ -27,7 +27,9 @@ TODO infer: dir.ExprData{ .repr_of = void }
 ```zest-test
 %repr-of(3.14)
 
-TODO desugar: sir.ExprData{ .f64 = 3.14e0 }
+f64
+
+TODO infer: dir.ExprData{ .repr_of = void }
 ```
 
 ```zest-test
@@ -110,7 +112,9 @@ Arbitrary precision decimals.
 ```zest-test
 3.14
 
-TODO desugar: sir.ExprData{ .f64 = 3.14e0 }
+3.14e0
+
+TODO infer: dir.ExprData{ .f64 = 3.14e0 }
 ```
 
 TODO NaN? Inf?
@@ -290,7 +294,7 @@ i64[42]
 ```zest-test
 i64[9223372036854775808]
 
-Parse error: invalid i64: parse.ParseErrorData__enum_24820.overflow
+Parse error: invalid i64: parse.ParseErrorData__enum_24817.overflow
 At 1:23:
 i64[9223372036854775808]
                        ^
@@ -299,13 +303,17 @@ i64[9223372036854775808]
 ```zest-test
 i64[3.00]
 
-TODO desugar: sir.ExprData{ .f64 = 3e0 }
+Expected i64, found f64
+
+TODO infer: dir.ExprData{ .f64 = 3e0 }
 ```
 
 ```zest-test
 i64[3.14]
 
-TODO desugar: sir.ExprData{ .f64 = 3.14e0 }
+Expected i64, found f64
+
+TODO infer: dir.ExprData{ .f64 = 3.14e0 }
 ```
 
 ### floats
@@ -321,7 +329,7 @@ TODO Represent literals as big-int/big-dec to avoid this problem.
 ```zest-test
 f64[9223372036854775808]
 
-Parse error: invalid i64: parse.ParseErrorData__enum_24820.overflow
+Parse error: invalid i64: parse.ParseErrorData__enum_24817.overflow
 At 1:23:
 f64[9223372036854775808]
                        ^
@@ -430,7 +438,9 @@ Expected union[strings: string, nums: i64], found struct[nums: string]
 ```zest-test
 [floats: 3.14]/union[strings: string, nums: i64]
 
-TODO desugar: sir.ExprData{ .f64 = 3.14e0 }
+Expected union[strings: string, nums: i64], found struct[floats: f64]
+
+TODO infer: dir.ExprData{ .f64 = 3.14e0 }
 ```
 
 ```zest-test
@@ -447,9 +457,9 @@ x.nums
 Key 'nums' not found in [strings: 'hello']/union[strings: string, nums: i64]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/484cb326:1:188)
-    at <anonymous> (wasm://wasm/484cb326:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/ce2c6792:1:188)
+    at <anonymous> (wasm://wasm/ce2c6792:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -621,13 +631,17 @@ It's intended that `a ~= b` iff `a == b/convert(type-of(a))` ie convert should o
 ```zest-test
 42 == 42.0
 
-TODO desugar: sir.ExprData{ .f64 = 4.2e1 }
+0
+
+TODO infer: dir.ExprData{ .f64 = 4.2e1 }
 ```
 
 ```zest-test
 42 ~= 42.0
 
-TODO desugar: sir.ExprData{ .f64 = 4.2e1 }
+TODO eval: dir.ExprData{ .call_builtin = zest.Builtin.equivalent }
+
+TODO infer: dir.ExprData{ .call_builtin = zest.Builtin.equivalent }
 ```
 
 ```zest-test

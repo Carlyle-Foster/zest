@@ -15,6 +15,7 @@ const evalRuntimeDefinition = zest.evalRuntimeDefinition;
 pub const Repr = union(enum) {
     u32,
     i64,
+    f64,
     string,
     @"struct": ReprStruct,
     @"union": ReprUnion,
@@ -59,6 +60,7 @@ pub const Repr = union(enum) {
         return switch (self) {
             .u32 => 4,
             .i64 => 8,
+            .f64 => 8,
             .string => 8, // see runtime.string-innards
             .@"struct" => |@"struct"| @"struct".sizeOf(),
             .@"union" => |@"union"| @"union".sizeOf(),
@@ -83,7 +85,7 @@ pub const Repr = union(enum) {
             else
                 null,
             .namespace => |namespace| .{ .namespace = .{ .repr = namespace } },
-            .u32, .i64, .string, .@"union", .list, .any, .repr, .@"repr-kind", .ref => null,
+            .u32, .i64, .f64, .string, .@"union", .list, .any, .repr, .@"repr-kind", .ref => null,
         };
     }
 
@@ -92,7 +94,7 @@ pub const Repr = union(enum) {
         _ = options;
         try writer.print("{s}", .{@tagName(self)});
         switch (self) {
-            .u32, .i64, .string, .any, .repr, .@"repr-kind" => {},
+            .u32, .i64, .f64, .string, .any, .repr, .@"repr-kind" => {},
             .@"struct" => |@"struct"| {
                 try writer.writeAll("[");
                 var positional = true;
@@ -154,7 +156,7 @@ pub const Repr = union(enum) {
             .ref => {
                 return true;
             },
-            .u32, .i64, .string, .namespace, .any, .repr, .@"repr-kind" => {
+            .u32, .i64, .f64, .string, .namespace, .any, .repr, .@"repr-kind" => {
                 return false;
             },
             .@"struct" => |@"struct"| {

@@ -54,6 +54,9 @@ fn desugarExpr(c: *Compiler, s: sir.SourceData, f: *dir.FunData) error{DesugarEr
         .i64 => |i| {
             emit(c, f, .{ .i64 = i });
         },
+        .f64 => |fl| {
+            emit(c, f, .{ .f64 = fl });
+        },
         .string => |string| {
             emit(c, f, .{ .string = string });
         },

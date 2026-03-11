@@ -1349,9 +1349,9 @@ Tried to perform a side effect during pure evaluation: zest.Builtin.print
 panic
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/335fe106:1:199)
-    at <anonymous> (wasm://wasm/335fe106:1:179)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/ddc9b21a:1:199)
+    at <anonymous> (wasm://wasm/ddc9b21a:1:179)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1367,10 +1367,10 @@ panic
 
 Oh no
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/cf5314c2:1:309)
-    at <anonymous> (wasm://wasm/cf5314c2:1:224)
-    at <anonymous> (wasm://wasm/cf5314c2:1:180)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/88f422fe:1:309)
+    at <anonymous> (wasm://wasm/88f422fe:1:224)
+    at <anonymous> (wasm://wasm/88f422fe:1:180)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1385,9 +1385,9 @@ RuntimeError: unreachable
 Division by zero
 
 RuntimeError: remainder by zero
-    at <anonymous> (wasm://wasm/04a22482:1:192)
-    at <anonymous> (wasm://wasm/04a22482:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/94126c02:1:192)
+    at <anonymous> (wasm://wasm/94126c02:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1519,9 +1519,9 @@ a.none
 Key 'none' not found in [some: 42]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/d1767886:1:186)
-    at <anonymous> (wasm://wasm/d1767886:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/b5fd9dea:1:186)
+    at <anonymous> (wasm://wasm/b5fd9dea:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1538,9 +1538,9 @@ a.none
 Key 'none' not found in [some: 42]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/17674dae:1:223)
-    at <anonymous> (wasm://wasm/17674dae:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/5e55164e:1:223)
+    at <anonymous> (wasm://wasm/5e55164e:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1550,9 +1550,9 @@ a.some
 Key 'some' not found in [none: []]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/484cb326:1:188)
-    at <anonymous> (wasm://wasm/484cb326:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/ce2c6792:1:188)
+    at <anonymous> (wasm://wasm/ce2c6792:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1569,9 +1569,9 @@ a.some
 Key 'some' not found in [none: []]/union[some: i64, none: struct[]]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/413640ae:1:218)
-    at <anonymous> (wasm://wasm/413640ae:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/2097f78e:1:218)
+    at <anonymous> (wasm://wasm/2097f78e:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -1586,7 +1586,7 @@ a.none
 f = ([some: x]) x
 f(union[some: i64, none: struct[]][[some: 42]])
 
-TODO eval: dir.ExprData{ .assert_object = dir.ExprData__struct_24392{ .count = 1 } }
+TODO eval: dir.ExprData{ .assert_object = dir.ExprData__struct_24388{ .count = 1 } }
 
 TODO infer: dir.ExprData{ .i64 = 0 }
 ```
@@ -1611,9 +1611,9 @@ a.none
 Key 'some' not found in [none: 101]/union[some: i64, none: i64]
 
 RuntimeError: unreachable
-    at <anonymous> (wasm://wasm/fbc69476:1:240)
-    at <anonymous> (wasm://wasm/fbc69476:1:177)
-    at file:///home/jamie/zest/test.js:33:24
+    at <anonymous> (wasm://wasm/91994d06:1:240)
+    at <anonymous> (wasm://wasm/91994d06:1:177)
+    at file:///home/million/Programming/forks/zest/test.js:33:24
 ```
 
 ```zest-test
@@ -2128,7 +2128,7 @@ Cannot make fun with these args: [42, x: 42]
 f = []/fun[9999999]
 f()
 
-TODO eval: dir.ExprData{ .call = dir.ExprData__struct_24393{ .arg_count = 1 } }
+TODO eval: dir.ExprData{ .call = dir.ExprData__struct_24389{ .arg_count = 1 } }
 
 TODO infer: dir.ExprData{ .local_get = dir.Local{ .id = 0 } }
 ```
@@ -2139,7 +2139,7 @@ id = %unmake(%repr-of(g)).1.0
 f = [x: 42]/fun[id, x: i64]
 f()
 
-TODO eval: dir.ExprData{ .call = dir.ExprData__struct_24393{ .arg_count = 1 } }
+TODO eval: dir.ExprData{ .call = dir.ExprData__struct_24389{ .arg_count = 1 } }
 
 The result type of %unmake cannot be inferred
 ```

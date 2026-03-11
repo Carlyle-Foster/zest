@@ -213,6 +213,9 @@ pub fn evalExpr(
         .i64 => |i| {
             c.value_stack.append(.{ .i64 = i }) catch oom();
         },
+        .f64 => |fl| {
+            c.value_stack.append(.{ .f64 = fl }) catch oom();
+        },
         .string => |string| {
             c.value_stack.append(.{ .string = string }) catch oom();
         },
@@ -323,7 +326,7 @@ pub fn evalExpr(
                             .actual = list.elems.items.len,
                         } });
                 },
-                .u32, .i64, .string, .repr, .@"repr-kind", .fun, .only, .any, .ref, .namespace => return fail(c, .{ .expected_object = value }),
+                .u32, .i64, .f64, .string, .repr, .@"repr-kind", .fun, .only, .any, .ref, .namespace => return fail(c, .{ .expected_object = value }),
             }
             c.value_stack.append(value) catch oom();
         },
@@ -454,6 +457,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = if (arg0.i64 < arg1.i64) 1 else 0 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .i64 = if (arg0.u32 < arg1.u32) 1 else 0 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .i64 = if (arg0.f64 < arg1.f64) 1 else 0 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -465,6 +470,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = if (arg0.i64 <= arg1.i64) 1 else 0 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .i64 = if (arg0.u32 <= arg1.u32) 1 else 0 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .i64 = if (arg0.f64 <= arg1.f64) 1 else 0 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -476,6 +483,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = if (arg0.i64 > arg1.i64) 1 else 0 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .i64 = if (arg0.u32 > arg1.u32) 1 else 0 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .i64 = if (arg0.f64 > arg1.f64) 1 else 0 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -487,6 +496,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = if (arg0.i64 >= arg1.i64) 1 else 0 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .i64 = if (arg0.u32 >= arg1.u32) 1 else 0 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .i64 = if (arg0.f64 >= arg1.f64) 1 else 0 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -495,6 +506,8 @@ pub fn evalExpr(
                     const arg = c.value_stack.pop().?;
                     if (arg == .i64) {
                         c.value_stack.append(.{ .i64 = -arg.i64 }) catch oom();
+                    } else if (arg == .f64) {
+                        c.value_stack.append(.{ .f64 = -arg.f64 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{arg}) } });
                     }
@@ -506,6 +519,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = arg0.i64 +% arg1.i64 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .u32 = arg0.u32 +% arg1.u32 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .f64 = arg0.f64 + arg1.f64 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -517,6 +532,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = arg0.i64 -% arg1.i64 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .u32 = arg0.u32 -% arg1.u32 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .f64 = arg0.f64 - arg1.f64 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -528,6 +545,8 @@ pub fn evalExpr(
                         c.value_stack.append(.{ .i64 = arg0.i64 *% arg1.i64 }) catch oom();
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         c.value_stack.append(.{ .u32 = arg0.u32 *% arg1.u32 }) catch oom();
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        c.value_stack.append(.{ .f64 = arg0.f64 * arg1.f64 }) catch oom();
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Value, &.{ arg0, arg1 }) } });
                     }
@@ -1025,7 +1044,6 @@ pub fn evalExpr(
             frame.expr.id -= 2;
         },
         .@"return", .stage, .stage_begin, .repr_of, .repr_of_begin, .unstage, .unstage_begin => panic("Can't eval control flow expr: {}", .{expr_data}),
-        .f64 => return fail(c, .todo),
     }
     return .next;
 }

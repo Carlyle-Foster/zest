@@ -11,6 +11,7 @@ pub fn deepEqual(a: anytype, b: @TypeOf(a)) bool {
     switch (@typeInfo(T)) {
         .void => return true,
         .int, .@"enum" => return a == b,
+        .float => return std.mem.eql(u8, std.mem.asBytes(&a), std.mem.asBytes(&b)), // TODO(carlyle) not sure how to handle this yet
         .@"struct" => |info| {
             inline for (info.fields) |field| {
                 if (!deepEqual(@field(a, field.name), @field(b, field.name)))
@@ -67,6 +68,7 @@ pub fn deepHashInto(hasher: anytype, key: anytype) void {
     switch (@typeInfo(T)) {
         .void => {},
         .int, .@"enum" => hasher.update(std.mem.asBytes(&key)),
+        .float => hasher.update(std.mem.asBytes(&key)),
         .@"struct" => |info| {
             inline for (info.fields) |field| {
                 deepHashInto(hasher, @field(key, field.name));

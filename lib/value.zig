@@ -21,6 +21,7 @@ const dir = zest.dir;
 pub const Value = union(enum) {
     u32: u32,
     i64: i64,
+    f64: f64,
     string: []const u8,
     @"struct": ValueStruct,
     @"union": ValueUnion,
@@ -37,6 +38,7 @@ pub const Value = union(enum) {
         return switch (value) {
             .u32 => .u32,
             .i64 => .i64,
+            .f64 => .f64,
             .string => .string,
             .@"struct" => |@"struct"| .{ .@"struct" = @"struct".repr },
             .@"union" => |@"union"| .{ .@"union" = @"union".repr },
@@ -65,7 +67,7 @@ pub const Value = union(enum) {
 
     pub fn get(self: Value, key: Value) ?Value {
         return switch (self) {
-            .u32, .i64, .string, .fun, .only, .any, .ref, .repr, .@"repr-kind", .namespace => null,
+            .u32, .i64, .f64, .string, .fun, .only, .any, .ref, .repr, .@"repr-kind", .namespace => null,
             .@"struct" => |@"struct"| @"struct".get(key),
             .@"union" => |@"union"| @"union".get(key),
             .list => |list| list.get(key),
@@ -74,7 +76,7 @@ pub const Value = union(enum) {
 
     pub fn getMut(self: *Value, key: Value) ?*Value {
         return switch (self.*) {
-            .u32, .i64, .string, .fun, .only, .any, .ref, .repr, .@"repr-kind", .namespace => null,
+            .u32, .i64, .f64, .string, .fun, .only, .any, .ref, .repr, .@"repr-kind", .namespace => null,
             .@"struct" => |*@"struct"| @"struct".getMut(key),
             .@"union" => |*@"union"| @"union".getMut(key),
             .list => |*list| list.getMut(key),
@@ -87,6 +89,7 @@ pub const Value = union(enum) {
         switch (self) {
             .u32 => |i| try writer.print("{}/u32", .{i}),
             .i64 => |i| try writer.print("{}", .{i}),
+            .f64 => |fl| try writer.print("{}", .{fl}),
             .string => |string| try writer.print("'{'}'", .{std.zig.fmtEscapes(string)}),
             .@"struct" => |@"struct"| {
                 try writer.writeAll("[");
@@ -152,7 +155,7 @@ pub const Value = union(enum) {
 
     pub fn copy(self: Value, allocator: Allocator) Value {
         return switch (self) {
-            .u32, .i64, .repr, .@"repr-kind", .namespace => self,
+            .u32, .i64, .f64, .repr, .@"repr-kind", .namespace => self,
             .string => |string| .{
                 .string = allocator.dupe(u8, string) catch oom(),
             },
@@ -213,6 +216,9 @@ pub const Value = union(enum) {
             .i64 => {
                 return .{ .i64 = std.mem.readInt(i64, bytes[0..@sizeOf(i64)], .little) };
             },
+            .f64 => {
+                return .{ .f64 = @bitCast(std.mem.readInt(i64, bytes[0..@sizeOf(i64)], .little)) };
+            },
             .@"struct" => |@"struct"| {
                 const values = allocator.alloc(Value, @"struct".keys.len) catch oom();
                 var offset: usize = 0;
@@ -233,6 +239,9 @@ pub const Value = union(enum) {
             },
             .i64 => |i| {
                 std.mem.writeInt(i64, bytes[0..@sizeOf(i64)], i, .little);
+            },
+            .f64 => |fl| {
+                std.mem.writeInt(i64, bytes[0..@sizeOf(f64)], @bitCast(fl), .little);
             },
             .@"struct" => |@"struct"| {
                 var offset: usize = 0;

@@ -228,7 +228,7 @@ fn inferExprInner(
                 },
                 .@"union" => return fail(c, .todo),
                 .list => return fail(c, .todo), // Need to emit an assert on length
-                .u32, .i64, .string, .repr, .@"repr-kind", .fun, .only, .any, .ref, .namespace => return fail(c, .{ .expected_object = value }),
+                .u32, .i64, .f64, .string, .repr, .@"repr-kind", .fun, .only, .any, .ref, .namespace => return fail(c, .{ .expected_object = value }),
             }
             return value;
         },
@@ -486,6 +486,9 @@ fn inferExprInner(
                     } else if (arg0 == .u32 and arg1 == .u32) {
                         emit(c, f, .{ .call_builtin = .add_u32 });
                         return .u32;
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        emit(c, f, .{ .call_builtin = .add_f64 });
+                        return .f64;
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Repr, &.{ arg0, arg1 }) } });
                     }

@@ -523,6 +523,7 @@ fn genExprInner(
                 return switch (builtin) {
                     .add_u32, .subtract_u32, .multiply_u32, .remainder_u32, .clz_u32, .i64_to_u32 => .{ .u32 = 0 },
                     .equal_u32, .not_equal_u32, .less_than_u32, .less_than_or_equal_u32, .more_than_u32, .more_than_or_equal_u32, .equal_i64, .not_equal_i64, .less_than_i64, .less_than_or_equal_i64, .more_than_i64, .more_than_or_equal_i64, .negate_i64, .add_i64, .subtract_i64, .multiply_i64, .remainder_i64, .union_has_key => .{ .i64 = 0 },
+                    .add_f64 => .{ .i64 = 0 }, // TODO(carlyle) i don't rly understand what we're doing here
                     .memory_size, .heap_start, .size_of, .bit_shift_left_u32 => .{ .u32 = 0 },
                     .memory_grow, .memory_fill, .memory_copy, .load, .store, .print_u32, .print_i64, .print_string, .panic, .from_only => unreachable,
                 };
@@ -646,6 +647,10 @@ fn genExprInner(
                 .add_i64 => {
                     emitEnum(f, wasm.Opcode.i64_add);
                     return .{ .stack = .i64 };
+                },
+                .add_f64 => {
+                    emitEnum(f, wasm.Opcode.f64_add);
+                    return .{ .stack = .f64 };
                 },
                 .subtract_u32 => {
                     emitEnum(f, wasm.Opcode.i32_sub);
@@ -784,11 +789,11 @@ fn genExprInner(
             }
 
             const branch_dest: wir.Destination = if (dest != .anywhere) dest else
-                // Need to pick a specific dest so that both branches end up in the same place.
-                switch (wasmRepr(repr)) {
-                    .primitive => .stack,
-                    .heap => .{ .value_at = c.box(shadowPush(c, f, repr)) },
-                };
+            // Need to pick a specific dest so that both branches end up in the same place.
+            switch (wasmRepr(repr)) {
+                .primitive => .stack,
+                .heap => .{ .value_at = c.box(shadowPush(c, f, repr)) },
+            };
 
             load(c, f, cond);
             emitEnum(f, wasm.Opcode.i32_wrap_i64);
@@ -968,6 +973,9 @@ fn store(c: *Compiler, f: *wir.FunData, from_value: wir.Walue, to_ptr: wir.Walue
         .i64 => {
             storePrimitive(c, f, from_value, to_ptr, .i64);
         },
+        .f64 => {
+            storePrimitive(c, f, from_value, to_ptr, .f64);
+        },
         .string => |string| {
             const ptr = ptrToConstant(c, .{ .string = string });
             var values = [_]wir.Walue{ .{ .u32 = ptr }, .{ .u32 = @intCast(string.len) } };
@@ -1076,6 +1084,10 @@ fn load(c: *Compiler, f: *wir.FunData, from_value: wir.Walue) void {
             emitEnum(f, wasm.Opcode.i64_const);
             emitLebI64(f, i);
         },
+        .f64 => |fl| {
+            emitEnum(f, wasm.Opcode.f64_const);
+            emitBytes(f, std.mem.asBytes(&fl));
+        },
         .string, .@"struct", .@"union", .fun, .only, .namespace => panic("Can't load from {}", .{from_value}),
         .value_at => |value_at| {
             const from_add = asAdd(c, value_at.ptr.*);
@@ -1104,7 +1116,7 @@ fn loadPtrTo(c: *Compiler, f: *wir.FunData, from_value: wir.Walue) void {
         .closure, .arg, .@"return", .local, .shadow => {
             panic("Can't point to local: {}", .{from_value});
         },
-        .stack, .u32, .i64, .string, .@"struct", .@"union", .fun, .only, .namespace => {
+        .stack, .u32, .i64, .f64, .string, .@"struct", .@"union", .fun, .only, .namespace => {
             const repr = walueRepr(c, f, from_value);
             const ptr = copyToShadow(c, f, from_value, repr);
             load(c, f, ptr);
@@ -1152,7 +1164,7 @@ fn getShuffler(f: *wir.FunData, repr: Repr) wir.Local {
 
 fn dropStack(c: *Compiler, f: *wir.FunData, walue: wir.Walue) wir.Walue {
     switch (walue) {
-        .closure, .arg, .@"return", .local, .shadow, .u32, .i64, .string, .@"struct", .@"union", .fun, .only, .namespace => return walue,
+        .closure, .arg, .@"return", .local, .shadow, .u32, .i64, .f64, .string, .@"struct", .@"union", .fun, .only, .namespace => return walue,
         .stack => |repr| {
             emitEnum(f, wasm.Opcode.drop);
             return switch (repr) {
@@ -1178,7 +1190,7 @@ fn dropStack(c: *Compiler, f: *wir.FunData, walue: wir.Walue) wir.Walue {
 
 fn spillStack(c: *Compiler, f: *wir.FunData, walue: wir.Walue) wir.Walue {
     switch (walue) {
-        .closure, .arg, .@"return", .local, .shadow, .u32, .i64, .string, .only, .namespace => {
+        .closure, .arg, .@"return", .local, .shadow, .u32, .i64, .f64, .string, .only, .namespace => {
             return walue;
         },
         .stack => |repr| {
@@ -1240,7 +1252,7 @@ const WasmRepr = union(enum) {
 
 fn wasmRepr(repr: Repr) WasmRepr {
     return switch (repr) {
-        .u32, .i64, .ref => .{ .primitive = wasmAbi(repr) },
+        .u32, .i64, .f64, .ref => .{ .primitive = wasmAbi(repr) },
         .string, .@"struct", .@"union", .list, .fun, .only, .any, .namespace, .repr, .@"repr-kind" => .heap,
     };
 }
@@ -1249,6 +1261,7 @@ fn wasmAbi(repr: Repr) wasm.Valtype {
     return switch (repr) {
         .u32 => .i32,
         .i64 => .i64,
+        .f64 => .f64,
         // Pointers.
         .string, .@"struct", .@"union", .list, .fun, .only, .any, .namespace, .ref, .repr, .@"repr-kind" => .i32,
     };
@@ -1261,7 +1274,7 @@ fn wasmLocal(c: *Compiler, f: *const wir.FunData, walue: wir.Walue) u32 {
         .@"return" => @intCast(c.fun_type_data.get(f.fun_type).arg_types.len - 1),
         .local => |local| @intCast(c.fun_type_data.get(f.fun_type).arg_types.len + local.id),
         .shadow => @intCast(c.fun_type_data.get(f.fun_type).arg_types.len + f.local_shadow.?.id),
-        .stack, .u32, .i64, .string, .@"struct", .@"union", .fun, .only, .namespace, .value_at, .add => panic("Not a local: {}", .{walue}),
+        .stack, .u32, .i64, .f64, .string, .@"struct", .@"union", .fun, .only, .namespace, .value_at, .add => panic("Not a local: {}", .{walue}),
     };
 }
 
@@ -1270,6 +1283,7 @@ fn walueRepr(c: *Compiler, f: *const wir.FunData, walue: wir.Walue) Repr {
         .arg => |arg| c.tir_fun_data.get(f.tir_fun).key.arg_reprs[arg.id],
         .closure, .@"return", .shadow, .u32, .add => .u32,
         .i64 => .i64,
+        .f64 => .f64,
         .string => .string,
         .stack => |repr| repr,
         .local => |local| f.local_data.get(local).repr,
@@ -1286,6 +1300,7 @@ fn valueToWalue(c: *Compiler, value: Value) error{GenerateError}!wir.Walue {
     switch (value) {
         .u32 => |u| return .{ .u32 = u },
         .i64 => |i| return .{ .i64 = i },
+        .f64 => |fl| return .{ .f64 = fl },
         .string => |string| return .{ .string = string },
         .@"struct" => |@"struct"| {
             const walues = c.allocator.alloc(wir.Walue, @"struct".values.len) catch oom();
