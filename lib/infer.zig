@@ -500,12 +500,15 @@ fn inferExprInner(
                 .subtract => {
                     const arg0 = try inferExpr(c, f, dir_f, .other);
                     const arg1 = try inferExpr(c, f, dir_f, .other);
-                    if (arg0 == .i64 and arg1 == .i64) {
-                        emit(c, f, .{ .call_builtin = .subtract_i64 });
-                        return .i64;
-                    } else if (arg0 == .u32 and arg1 == .u32) {
+                    if (arg0 == .u32 and arg1 == .u32) {
                         emit(c, f, .{ .call_builtin = .subtract_u32 });
                         return .u32;
+                    } else if (arg0 == .i64 and arg1 == .i64) {
+                        emit(c, f, .{ .call_builtin = .subtract_i64 });
+                        return .i64;
+                    } else if (arg0 == .f64 and arg1 == .f64) {
+                        emit(c, f, .{ .call_builtin = .subtract_f64 });
+                        return .f64;
                     } else {
                         return fail(c, .{ .invalid_call_builtin = .{ .builtin = builtin, .args = c.dupe(Repr, &.{ arg0, arg1 }) } });
                     }

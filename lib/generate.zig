@@ -531,7 +531,7 @@ fn genExprInner(
                 return switch (builtin) {
                     .add_u32, .subtract_u32, .multiply_u32, .remainder_u32, .clz_u32, .i64_to_u32 => .{ .u32 = 0 },
                     .equal_u32, .not_equal_u32, .less_than_u32, .less_than_or_equal_u32, .more_than_u32, .more_than_or_equal_u32, .equal_i64, .not_equal_i64, .less_than_i64, .less_than_or_equal_i64, .more_than_i64, .more_than_or_equal_i64, .negate_i64, .add_i64, .subtract_i64, .multiply_i64, .remainder_i64, .union_has_key => .{ .i64 = 0 },
-                    .add_f64 => .{ .i64 = 0 }, // TODO(carlyle) i don't rly understand what we're doing here
+                    .add_f64, .subtract_f64 => .{ .i64 = 0 }, // TODO(carlyle) i don't rly understand what we're doing here
                     .memory_size, .heap_start, .size_of, .bit_shift_left_u32 => .{ .u32 = 0 },
                     .memory_grow, .memory_fill, .memory_copy, .load, .store, .print_u32, .print_i64, .print_f64, .print_string, .panic, .from_only => unreachable,
                 };
@@ -667,6 +667,10 @@ fn genExprInner(
                 .subtract_i64 => {
                     emitEnum(f, wasm.Opcode.i64_sub);
                     return .{ .stack = .i64 };
+                },
+                .subtract_f64 => {
+                    emitEnum(f, wasm.Opcode.f64_sub);
+                    return .{ .stack = .f64 };
                 },
                 .multiply_u32 => {
                     emitEnum(f, wasm.Opcode.i32_mul);

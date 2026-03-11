@@ -6,10 +6,11 @@
 3.5
 ```
 
+QUESTION(carlyle) why is the printing different?
 ```zest-test
 2.5 - 2.1
 
 3.999999999999999e-1
 
-Cannot call zest.Builtin.subtract with these args: { f64, f64 }
+0.3999999999999999
 ```
