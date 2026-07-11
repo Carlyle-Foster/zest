@@ -39,11 +39,11 @@ pub fn main() !void {
 
             const source = try file.readToEndAlloc(allocator, std.math.maxInt(usize));
 
-            var compiler = Compiler.init(allocator, source);
+            var compiler = Compiler.init(allocator);
 
             switch (mode orelse panic("Specify --lax or --strict", .{})) {
                 .lax => {
-                    const lax_or_err = evalLax(allocator, &compiler);
+                    const lax_or_err = evalLax(allocator, &compiler, source);
                     std.debug.print("{s}{s}", .{
                         compiler.printed.items,
                         lax_or_err catch
@@ -51,13 +51,13 @@ pub fn main() !void {
                     });
                 },
                 .strict => {
-                    zest.compileLax(&compiler) catch {
+                    zest.compileLax(&compiler, .main, source, false) catch {
                         std.debug.print("{s}", .{
                             zest.formatError(&compiler),
                         });
                         break;
                     };
-                    const strict_or_err = evalStrict(allocator, &compiler);
+                    const strict_or_err = evalStrict(allocator, &compiler, source);
                     std.debug.print(
                         \\--- wat ---
                         \\{s}
